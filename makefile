@@ -3,7 +3,7 @@ INC_DIR = $(ARTOOLKITDIR)/include
 LIB_DIR = $(ARTOOLKITDIR)/lib
 
 LIBS = -lARgsub -lARvideo -lAR -lGL -lGLU -lglut -lm
-NAMEEXEC = HolaMundo
+NAMEEXEC = TrabajoFinal
 
 all: $(NAMEEXEC)
 
