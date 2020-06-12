@@ -9,6 +9,13 @@ int    patt_id;            // MarcaSimple
 int    patt_id_identic;    // Marca de Identic
 double patt_trans[3][4];   // Matriz de transformacion de la marca
 
+static GLint rotate = 0;
+float incremento_x = 0.0;
+float incremento_y = 0.0;
+float incremento_z = 0.0;
+long hours = 0;          // Horas transcurridas
+int sentido = 0;
+
 // ==== Definicion de estructuras ===================================
 struct TObject{
   int id;                      // Identificador del patron
@@ -65,10 +72,19 @@ void draw( void ) {
   GLfloat light_position[]  = {100.0,-200.0,200.0,0.0};
   GLfloat material1[]     = {0.0, 1.0, 0.0, 0.0};
   GLfloat material2[]     = {0.0, 0.0, 1.0, 1.0};
+  GLfloat material3[]     = {0.0, 1.0, 1.0, 0.0};
+  GLfloat material4[]     = {1.0, 0.0, 0.0, 0.0};
   double m[3][4], m2[3][4];
   int i;
   float angle=0.0, module=0.0;
   double v[3];
+  int cambio = 0;
+  float RotTierra = 0.0;     // Movimiento de traslacion de la tierra
+  //float RotEarthDay = 0.0;  // Movimiento de rotacion de la tierra
+  float size = 0.0;            // Tamaño al que debe escalar el objeto
+
+
+
 
   argDrawMode3D();              // Cambiamos el contexto a 3D
   argDraw3dCamera(0, 0);        // Y la vista de la camara a 3D
@@ -89,22 +105,57 @@ void draw( void ) {
 
       module = sqrt(pow(v[0],2)+pow(v[1],2)+pow(v[2],2));
       v[0] = v[0]/module;  v[1] = v[1]/module; v[2] = v[2]/module;
-      angle = acos (v[0]) * 57.2958;   // Sexagesimales! * (180/PI)
+      distancia = sqrt(pow(m2[0][3],2)+pow(m2[1][3],2)+pow(m2[2][3],2));
 
+      size = ((500 - distancia) / 160.0) * 100;
+      printf ("Distancia objects[0] y objects[1]= %G\n", size);
+      angle = acos (v[0]) * 57.2958;   // Sexagesimales! * (180/PI)
+      cambio = 1;
+    } else {
+      cambio = 2;
     }
-    if (angle >= 0 && angle < 90) {
+
+    if (angle >= 0 && angle < 45) {
       glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
     }
-    if (angle >= 90 && angle < 180) {
+    if (angle >= 45 && angle < 90) {
       glMaterialfv(GL_FRONT, GL_AMBIENT, material2);
     }
+    if (angle >= 90 && angle < 135) {
+      glMaterialfv(GL_FRONT, GL_AMBIENT, material3);
+    }
+    if (angle >= 135 && angle < 180) {
+      glMaterialfv(GL_FRONT, GL_AMBIENT, material4);
+    }
 
+    if(cambio == 1) {
+      glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+      glTranslatef(0.0, 0.0, 60.0);
+      glRotatef(90.0, 1.0, 0.0, 0.0);
+      glutSolidTeapot(size);
+    } else if (cambio == 2) {
+      glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-    glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glTranslatef(0.0, 0.0, 60.0);
-    glRotatef(90.0, 1.0, 0.0, 0.0);
-    glutSolidTeapot(80.0);
+      hours++;
+      RotTierra = (hours / 24.0) * (360 / 365.0) * 100;  // x10 rapido!
+      glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
+
+      // glRotatef (-RotEarth, 0.0, 0.0, 1.0);
+      glTranslatef(0,0,100);
+      glRotatef (-RotTierra, 0.0, 0.0, 1.0);
+      material1[0] = 0.1; material1[1] = 0.1; material1[2] = 1.0;
+      glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
+      glutWireSphere (50, 25, 25); // Tierra
+      // glMatrixMode(GL_MODELVIEW);
+      // glPushMatrix();
+      // glTranslatef(0.0, 0.0, 60.0); // move back to focus of gluLookAt
+      // glRotatef(90.0, 1.0, 0.0, 0.0); //  rotate around center
+      // glTranslatef(0.0, 0.0, 60.0); //move object to center
+      // glutSolidTorus(20.0, 20.0 , 4, 5);
+      // glPopMatrix();
+    }
   }
   glDisable(GL_DEPTH_TEST);
 }
@@ -164,17 +215,18 @@ static void mainLoop(void) {
 	else if(marker_info[k].cf < marker_info[j].cf) k = j;
       }
     }
-
     if(k != -1) {   // Si ha detectado el patron en algun sitio...
       objects[i].visible = 1;
       arGetTransMat(&marker_info[k], objects[i].center,
 		    objects[i].width, objects[i].patt_trans);
+      draw();           // Dibujamos los objetos de la escena
     } else { objects[i].visible = 0; }  // El objeto no es visible
   }
 
-  draw();           // Dibujamos los objetos de la escena
   argSwapBuffers(); // Cambiamos el buffer con lo que tenga dibujado
 }
+
+
 
 // ======== Main ====================================================
 int main(int argc, char **argv) {
