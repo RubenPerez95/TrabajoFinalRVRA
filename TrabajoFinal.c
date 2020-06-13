@@ -110,31 +110,26 @@ void draw( void ) {
       size = ((500 - distancia) / 160.0) * 100;
       printf ("Distancia objects[0] y objects[1]= %G\n", size);
       angle = acos (v[0]) * 57.2958;   // Sexagesimales! * (180/PI)
-      cambio = 1;
-    } else {
-      cambio = 2;
-    }
-
-    if (angle >= 0 && angle < 45) {
-      glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
-    }
-    if (angle >= 45 && angle < 90) {
-      glMaterialfv(GL_FRONT, GL_AMBIENT, material2);
-    }
-    if (angle >= 90 && angle < 135) {
-      glMaterialfv(GL_FRONT, GL_AMBIENT, material3);
-    }
-    if (angle >= 135 && angle < 180) {
-      glMaterialfv(GL_FRONT, GL_AMBIENT, material4);
-    }
-
-    if(cambio == 1) {
+      // cambio = 1;
+      if (angle >= 0 && angle < 45) {
+        glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
+      }
+      if (angle >= 45 && angle < 90) {
+        glMaterialfv(GL_FRONT, GL_AMBIENT, material2);
+      }
+      if (angle >= 90 && angle < 135) {
+        glMaterialfv(GL_FRONT, GL_AMBIENT, material3);
+      }
+      if (angle >= 135 && angle < 180) {
+        glMaterialfv(GL_FRONT, GL_AMBIENT, material4);
+      }
       glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
       glTranslatef(0.0, 0.0, 60.0);
       glRotatef(90.0, 1.0, 0.0, 0.0);
       glutSolidTeapot(size);
-    } else if (cambio == 2) {
+
+    } else {
       glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
@@ -148,13 +143,6 @@ void draw( void ) {
       material1[0] = 0.1; material1[1] = 0.1; material1[2] = 1.0;
       glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
       glutWireSphere (50, 25, 25); // Tierra
-      // glMatrixMode(GL_MODELVIEW);
-      // glPushMatrix();
-      // glTranslatef(0.0, 0.0, 60.0); // move back to focus of gluLookAt
-      // glRotatef(90.0, 1.0, 0.0, 0.0); //  rotate around center
-      // glTranslatef(0.0, 0.0, 60.0); //move object to center
-      // glutSolidTorus(20.0, 20.0 , 4, 5);
-      // glPopMatrix();
     }
   }
   glDisable(GL_DEPTH_TEST);
