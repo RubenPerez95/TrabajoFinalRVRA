@@ -29,6 +29,7 @@ struct TObject{
 struct TObject *objects = NULL;
 int nobjects = 0;
 int distancia; //Distancia entre objeto 0 y 1
+float tamFinal = 0S.0;
 
 void print_error (char *error) {  printf(error); exit(0); }
 
@@ -105,10 +106,15 @@ void draw( void ) {
 
       module = sqrt(pow(v[0],2)+pow(v[1],2)+pow(v[2],2));
       v[0] = v[0]/module;  v[1] = v[1]/module; v[2] = v[2]/module;
+
+      arUtilMatInv(objects[0].patt_trans, m);
+      arUtilMatMul(m, objects[1].patt_trans, m2);
       distancia = sqrt(pow(m2[0][3],2)+pow(m2[1][3],2)+pow(m2[2][3],2));
 
-      size = ((500 - distancia) / 160.0) * 100;
-      printf ("Distancia objects[0] y objects[1]= %G\n", size);
+      size = ((320 - distancia) / 160.0);
+      tamFinal = size * 100;
+      printf ("Distancia objects[0] y objects[1]= %G\n", tamFinal);
+
       angle = acos (v[0]) * 57.2958;   // Sexagesimales! * (180/PI)
       // cambio = 1;
       if (angle >= 0 && angle < 45) {
@@ -123,11 +129,12 @@ void draw( void ) {
       if (angle >= 135 && angle < 180) {
         glMaterialfv(GL_FRONT, GL_AMBIENT, material4);
       }
+      
       glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
       glTranslatef(0.0, 0.0, 60.0);
       glRotatef(90.0, 1.0, 0.0, 0.0);
-      glutSolidTeapot(size);
+      glutSolidTeapot(tamFinal);
 
     } else {
       glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
@@ -207,10 +214,10 @@ static void mainLoop(void) {
       objects[i].visible = 1;
       arGetTransMat(&marker_info[k], objects[i].center,
 		    objects[i].width, objects[i].patt_trans);
-      draw();           // Dibujamos los objetos de la escena
+
     } else { objects[i].visible = 0; }  // El objeto no es visible
   }
-
+  draw();           // Dibujamos los objetos de la escena
   argSwapBuffers(); // Cambiamos el buffer con lo que tenga dibujado
 }
 
