@@ -5,16 +5,14 @@
 #include <AR/ar.h>
 
 // ==== Definicion de constantes y variables globales ===============
-int    patt_id;            // MarcaSimple
-int    patt_id_identic;    // Marca de Identic
 double patt_trans[3][4];   // Matriz de transformacion de la marca
 
-static GLint rotate = 0;
-float incremento_x = 0.0;
-float incremento_y = 0.0;
-float incremento_z = 0.0;
 long hours = 0;          // Horas transcurridas
-int sentido = 0;
+
+struct TObject *objects = NULL;
+int nobjects = 0;
+int distancia; //Distancia entre objeto 0 y 1
+float tamFinal = 80.0; //Inicialización del tamaño que cogera el objeto
 
 // ==== Definicion de estructuras ===================================
 struct TObject{
@@ -26,14 +24,9 @@ struct TObject{
   void (* drawme)(void);       // Puntero a funcion drawme
 };
 
-struct TObject *objects = NULL;
-int nobjects = 0;
-int distancia; //Distancia entre objeto 0 y 1
-float tamFinal = 0S.0;
-
 void print_error (char *error) {  printf(error); exit(0); }
 
-
+//Método que añade los objetos de las marcas en matriz
 void addObject(char *p, double w, double c[2], void (*drawme)(void))
 {
   int pattid;
@@ -51,8 +44,6 @@ void addObject(char *p, double w, double c[2], void (*drawme)(void))
   objects[nobjects-1].center[1] = c[1];
   objects[nobjects-1].drawme = drawme;
 }
-
-
 
 // ======== cleanup =================================================
 static void cleanup(void) {
@@ -81,11 +72,7 @@ void draw( void ) {
   double v[3];
   int cambio = 0;
   float RotTierra = 0.0;     // Movimiento de traslacion de la tierra
-  //float RotEarthDay = 0.0;  // Movimiento de rotacion de la tierra
   float size = 0.0;            // Tamaño al que debe escalar el objeto
-
-
-
 
   argDrawMode3D();              // Cambiamos el contexto a 3D
   argDraw3dCamera(0, 0);        // Y la vista de la camara a 3D
@@ -113,10 +100,18 @@ void draw( void ) {
 
       size = ((320 - distancia) / 160.0);
       tamFinal = size * 100;
+
+      // Control del valor del tamaño a negativo
+      if (tamFinal < 0) {
+        tamFinal = 0;
+      }else {
+        tamFinal = size * 100;
+      }
       printf ("Distancia objects[0] y objects[1]= %G\n", tamFinal);
 
-      angle = acos (v[0]) * 57.2958;   // Sexagesimales! * (180/PI)
-      // cambio = 1;
+      angle = acos (v[0]) * 57.2958;
+
+      // Se establece el color para cada rango de ángulos
       if (angle >= 0 && angle < 45) {
         glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
       }
@@ -129,22 +124,24 @@ void draw( void ) {
       if (angle >= 135 && angle < 180) {
         glMaterialfv(GL_FRONT, GL_AMBIENT, material4);
       }
-      
+
+      // Dibujado del Cono
       glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
       glTranslatef(0.0, 0.0, 60.0);
-      glRotatef(90.0, 1.0, 0.0, 0.0);
-      glutSolidTeapot(tamFinal);
+      glRotatef(0.0, 0.0, 1.0, 0.0);
+      glutSolidCone(tamFinal*2, tamFinal*5, 4, 4);
 
     } else {
       glEnable(GL_LIGHTING);  glEnable(GL_LIGHT0);
       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
+      // Marcado de la velocidad de la esfera
       hours++;
       RotTierra = (hours / 24.0) * (360 / 365.0) * 100;  // x10 rapido!
       glMaterialfv(GL_FRONT, GL_AMBIENT, material1);
 
-      // glRotatef (-RotEarth, 0.0, 0.0, 1.0);
+      //Dibujado de la esfera y rotación
       glTranslatef(0,0,100);
       glRotatef (-RotTierra, 0.0, 0.0, 1.0);
       material1[0] = 0.1; material1[1] = 0.1; material1[2] = 1.0;
@@ -213,7 +210,7 @@ static void mainLoop(void) {
     if(k != -1) {   // Si ha detectado el patron en algun sitio...
       objects[i].visible = 1;
       arGetTransMat(&marker_info[k], objects[i].center,
-		    objects[i].width, objects[i].patt_trans);
+		    objects[i].width, objects[i].patt_trans); //se calcula la distancia entre las marcas y la cámara física
 
     } else { objects[i].visible = 0; }  // El objeto no es visible
   }
